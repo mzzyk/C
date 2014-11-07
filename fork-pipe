@@ -1,0 +1,31 @@
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAXLINE 100
+
+void err(char *s) {
+    printf("%s\n", s);
+    exit(1);
+}
+
+void test_pipe() {
+    int n;
+    int fd[2];
+    int pid;
+    char line[MAXLINE];
+
+    if (pipe(fd) < 0)
+        err("pipe failed");
+    if ((pid = fork()) < 0) {
+        err("fork failed");
+    } else if (pid == 0) {        /* parent */
+        close(fd[0]);             /* close read side of PIPE */
+        write(fd[1], "hello son\n", 10);
+    } else {                      /* child */
+        close(fd[1]);             /* close write side of PIPE */
+        n = read(fd[0], line, MAXLINE);
+        write(STDOUT_FILENO, line, n);
+    }
+    exit(0);
+}

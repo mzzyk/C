@@ -1,0 +1,55 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+int main()
+{
+        int pipefd[2];
+        int rt;
+        pid_t child = 0;
+
+        // An array with some values
+        char charBuffer[10] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+        // A buffer we use to communicate over the pipe
+        char outputBuffer[10];
+
+        if( pipe(pipefd) == -1 ) // Create new pipe
+        {
+                fprintf(stderr, "Failed to create pipe\n");
+                exit(1);
+        }
+
+        child = fork();        // Create new Child
+
+        if( !child )
+        {
+                printf("child created\n");
+                close(pipefd[1]); // Child is read only
+
+                // Wait for your alarm here
+                while( read(pipefd[0], (void*)&outputBuffer, 10) > 0 )
+                {
+                    printf("Child received something over the pipe\n");
+                    // Write output direct to stdout
+                    rt = write(STDOUT_FILENO, &outputBuffer, 10);
+                    rt = write(STDOUT_FILENO, "\n", 1);
+                }
+        }
+        else if( child == -1 )
+        {
+                fprintf(stderr, "Error on fork - no child\n");
+                exit(2);
+        }
+        else if( child > 0 )
+        {
+                close(pipefd[0]); // Parent is write only
+
+                // Write our values to the pipe
+                rt = write(pipefd[1], &charBuffer, 10);
+
+                printf("Parent finished writing\n");
+                close(pipefd[1]); // Signal writing is finished
+        }
+
+        return 0;
+}
