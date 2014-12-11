@@ -13,7 +13,6 @@
 #define MAX_SIZE 100000
 #define MAX_BUCKET 10
 
-int counter=0;
 int n;//the number of data
 int data[MAX_SIZE];
 int temp[MAX_SIZE];
@@ -78,10 +77,6 @@ void radix_sort(int rank)
 {  //radix_sort
 	int my_rank =rank;
 
-	MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(&pow_10, 1, MPI_INT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(data, n, MPI_INT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(bucket, MAX_BUCKET, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Comm_size(MPI_COMM_WORLD,&k);
 
 	int my_first = my_rank * (n / k);
@@ -94,7 +89,6 @@ void radix_sort(int rank)
 		my_last = my_first + n/k -1;
 	size = my_last - my_first + 1;
 	int i;
-	//sleep(1);
 	while((max_num / pow_10) > 0)
 	{
 
@@ -108,6 +102,7 @@ void radix_sort(int rank)
 		int rbucket[MAX_BUCKET];
 		for( i=0;i<MAX_BUCKET;i++)
 		{
+			//将各个进程统计结果累加
 			MPI_Reduce(&bucket[i],&rbucket[i],1,MPI_INT,MPI_SUM,0,MPI_COMM_WORLD);
 		}
 		if (rank == 0)
@@ -117,7 +112,7 @@ void radix_sort(int rank)
 				bucket[i]=rbucket[i];
 			}
 			scan();
-
+            //基数排序
 			for(i = (n - 1) ;i >= 0; i--) 
 				temp[--bucket[(data[i] / pow_10) % MAX_BUCKET]] = data[i];
 

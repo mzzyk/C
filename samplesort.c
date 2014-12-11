@@ -11,20 +11,17 @@
 #define  MAX 32
 #define MAX_SIZE 100000
 
-int n;   //the number of data
-int no_process;// the number of threads
-int data[MAX_SIZE];//DATA
-int temp[MAX_SIZE];
-int count;
-int thread;
-int number;
-int root=0; //root processor
-
-int *sample;
-int *splitter;
-int *bucket_size;
+int n;                //the number of data
+int no_process;       // the number of threads
+int data[MAX_SIZE];    //DATA
+int root=0;           //root processor
+int mm=0;
+int * sample; //sample data total is k(2k-1)
+int * splitter;  //splitters total is k-1
+int * bucket_size;  //the size of each bucket
 
 void sample_sort(int rank);
+//升序比较函数
 int comp(const void *a,const void *b)
 {
 	return *((int *)a) - *((int *)b);
@@ -32,7 +29,6 @@ int comp(const void *a,const void *b)
 int main(int argc, char * argv[])
 {
 	int i;
-	char *c;
         
 	FILE *fp;
 	if((fp = fopen(argv[1],"r")) == NULL)
@@ -44,10 +40,12 @@ int main(int argc, char * argv[])
 	i = 0;
 	while(fscanf(fp,"%d",&data[i]) != EOF) i++;
 	n = i;
+
 	int rank;	
 	MPI_Init(&argc,&argv);
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 	MPI_Comm_size(MPI_COMM_WORLD,&no_process);
+
 	sample_sort(rank);
 	if(rank == root)
 	{
@@ -57,6 +55,7 @@ int main(int argc, char * argv[])
 		printf("the largest number is %d\n",data[n-1]);
 	}
 	MPI_Finalize();
+
 	return 0;
 }
 
